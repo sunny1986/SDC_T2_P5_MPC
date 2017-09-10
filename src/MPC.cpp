@@ -4,10 +4,11 @@
 #include "Eigen-3.3/Eigen/Core"
 
 using CppAD::AD;
+using namespace std;
 
 // TODO: Set the timestep length and duration
 size_t N = 10;
-double dt = 0.1;
+double dt = 0.15;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -24,7 +25,7 @@ const double Lf = 2.67;
 // these are what values that we want the MPC to reach
 double ref_cte = 0; // this means the car is right on the line
 double ref_epsi = 0; // this means the car is aligned to the line
-double ref_v = 50;
+double ref_v = 30;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -44,7 +45,7 @@ class FG_eval {
   typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
   void operator()(ADvector& fg, const ADvector& vars) {
     // TODO: implement MPC
-    // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
+    // `fg` a vector of the cost constraints, `vars` is a vector of variable values (actuators & state)
     // NOTE: You'll probably go back and forth between this function and
     // the Solver function below.
 
@@ -56,8 +57,8 @@ class FG_eval {
 
     // The part of the cost based on the reference state.
     for (int t = 0; t < N; t++) {
-      fg[0] += 500*CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += 9000*CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += 100*CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += 3000*CppAD::pow(vars[epsi_start + t], 2);
       fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
@@ -69,7 +70,7 @@ class FG_eval {
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++) {
-      fg[0] += 500*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += 1*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
       fg[0] += 1*CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
 
@@ -167,6 +168,13 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   for (int i = 0; i < n_vars; i++) {
     vars[i] = 0;
   }
+
+  vars[x_start] = state[0];
+  vars[y_start] = state[1];
+  vars[v_start] = state[2];
+  vars[psi_start] = state[3];
+  vars[cte_start] = state[4];
+  vars[epsi_start] = state[5];
 
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
