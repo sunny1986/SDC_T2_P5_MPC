@@ -93,6 +93,33 @@ int main() {
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
 
+          /*
+          * TODO: Calculate steering angle and throttle using MPC.
+          *
+          * Both are in between [-1, 1].
+          *
+          */
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
+
+
+          //n a real car, an actuation command won't execute instantly - there will be a delay as the 
+          //command propagates through the system. A realistic delay might be on the order of 100 milliseconds.
+          //This is a problem called "latency"
+          
+          // Incorporating latency
+          double latency = 0.1;
+          double dt = 0.15;
+          double Lf = 2.67;
+          cout << "before:px,py,psi,v " << px << ", " << py << ", " << psi << ", " << v << endl;
+          /*
+          px = px + v*cos(psi)*latency;
+          py = py + v*sin(psi)*latency;
+          psi = psi + v*dt/Lf*latency;
+          v = v + throttle_value*dt;
+          */        
+          cout << "after:px,py,psi,v " << px << ", " << py << ", " << psi << ", " << v << endl;
+          
           for(int i=0 ; i < ptsx.size(); i++){
             double shift_x = ptsx[i]-px;
             double shift_y = ptsy[i]-py;
@@ -111,22 +138,19 @@ int main() {
 
           // calculate cte and epsi
           double cte = polyeval(coeffs, 0);
-          // double epsi = psi - atan(coeffs[1] + 2*px*coeffs[2] + 3*coeffs[3]*pow(px,2));
+          double epsi = psi - atan(coeffs[1] + 2*px*coeffs[2] + 3*coeffs[3]*pow(px,2));
           // but since psi = 0, px = 0 we get,
-          double epsi = -atan(coeffs[1]);
-          /*
-          * TODO: Calculate steering angle and throttle using MPC.
-          *
-          * Both are in between [-1, 1].
-          *
-          */
-          double steer_value = j[1]["steering_angle"];
-          double throttle_value = j[1]["throttle"];
-
+          //double epsi = -atan(coeffs[1]);
+          
           Eigen::VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
 
           auto vars = mpc.Solve(state, coeffs);
+          
+          cout << endl;
+          for(int i=0; i<vars.size(); i++){
+            cout << "vars " << vars[i] << endl;
+          }
 
           //Display the waypoints/reference line
           vector<double> next_x_vals;
@@ -145,16 +169,14 @@ int main() {
           vector<double> mpc_y_vals;
 
           for(int i=2; i<vars.size(); i++){
-            
+          
             if(i%2 ==0){
               mpc_x_vals.push_back(vars[i]);
             }
             else{
               mpc_y_vals.push_back(vars[i]);
-            }
-          }
-
-          double Lf = 2.67;
+            }          
+          }          
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
