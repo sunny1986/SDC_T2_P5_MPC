@@ -111,16 +111,7 @@ int main() {
           
           // Incorporating latency
           double latency = 0.1;
-          double dt = 0.15;
-          
-          cout << "before:px,py,psi,v " << px << ", " << py << ", " << psi << ", " << v << endl;
-          
-          v = v + throttle_value*dt;
-          psi = psi + v*dt/Lf*latency;
-          px = px + v*cos(psi)*latency;
-          py = py + v*sin(psi)*latency;          
-          
-          cout << "after:px,py,psi,v " << px << ", " << py << ", " << psi << ", " << v << endl;
+          double dt = 0.1;
           
           for(int i=0 ; i < ptsx.size(); i++){
             double shift_x = ptsx[i]-px;
@@ -129,6 +120,11 @@ int main() {
             ptsx[i] = shift_x * cos(0-psi) - shift_y * sin(0-psi);
             ptsy[i] = shift_x * sin(0-psi) + shift_y * cos(0-psi);
           }
+          
+          v = v + throttle_value*dt;
+          psi = psi + v*dt/Lf*latency;
+          px = px + v*cos(psi)*latency;
+          py = py + v*sin(psi)*latency;                    
 
           double* ptrx = &ptsx[0];
           Eigen::Map<Eigen::VectorXd> ptsx_transform(ptrx, 6);
@@ -150,9 +146,9 @@ int main() {
           auto vars = mpc.Solve(state, coeffs);
           
           cout << endl;
-          //for(int i=0; i<vars.size(); i++){
-          //  cout << "vars " << vars[i] << endl;
-          //}
+          for(int i=0; i<vars.size(); i++){
+            cout << "vars " << vars[i] << endl;
+          }
 
           //Display the waypoints/reference line
           vector<double> next_x_vals;
