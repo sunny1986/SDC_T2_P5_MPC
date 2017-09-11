@@ -99,7 +99,9 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
+          double Lf = 2.67;
           double steer_value = j[1]["steering_angle"];
+          steer_value = -steer_value / (deg2rad(25)*Lf);
           double throttle_value = j[1]["throttle"];
 
 
@@ -110,14 +112,14 @@ int main() {
           // Incorporating latency
           double latency = 0.1;
           double dt = 0.15;
-          double Lf = 2.67;
+          
           cout << "before:px,py,psi,v " << px << ", " << py << ", " << psi << ", " << v << endl;
-          /*
-          px = px + v*cos(psi)*latency;
-          py = py + v*sin(psi)*latency;
-          psi = psi + v*dt/Lf*latency;
+          
           v = v + throttle_value*dt;
-          */        
+          psi = psi + v*dt/Lf*latency;
+          px = px + v*cos(psi)*latency;
+          py = py + v*sin(psi)*latency;          
+          
           cout << "after:px,py,psi,v " << px << ", " << py << ", " << psi << ", " << v << endl;
           
           for(int i=0 ; i < ptsx.size(); i++){
@@ -138,9 +140,9 @@ int main() {
 
           // calculate cte and epsi
           double cte = polyeval(coeffs, 0);
-          double epsi = psi - atan(coeffs[1] + 2*px*coeffs[2] + 3*coeffs[3]*pow(px,2));
+          //double epsi = psi - atan(coeffs[1] + 2*px*coeffs[2] + 3*coeffs[3]*pow(px,2));
           // but since psi = 0, px = 0 we get,
-          //double epsi = -atan(coeffs[1]);
+          double epsi = -atan(coeffs[1]);
           
           Eigen::VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
@@ -148,9 +150,9 @@ int main() {
           auto vars = mpc.Solve(state, coeffs);
           
           cout << endl;
-          for(int i=0; i<vars.size(); i++){
-            cout << "vars " << vars[i] << endl;
-          }
+          //for(int i=0; i<vars.size(); i++){
+          //  cout << "vars " << vars[i] << endl;
+          //}
 
           //Display the waypoints/reference line
           vector<double> next_x_vals;
@@ -169,13 +171,14 @@ int main() {
           vector<double> mpc_y_vals;
 
           for(int i=2; i<vars.size(); i++){
-          
-            if(i%2 ==0){
-              mpc_x_vals.push_back(vars[i]);
+            if(vars[i]!=0){
+              if(i%2 ==0){
+                mpc_x_vals.push_back(vars[i]);
+              }
+              else{
+                mpc_y_vals.push_back(vars[i]);
+              }
             }
-            else{
-              mpc_y_vals.push_back(vars[i]);
-            }          
           }          
 
           json msgJson;
