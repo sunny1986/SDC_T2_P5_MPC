@@ -104,15 +104,7 @@ int main() {
           steer_value = -steer_value / (deg2rad(25)*Lf);
           double throttle_value = j[1]["throttle"];
 
-
-          //n a real car, an actuation command won't execute instantly - there will be a delay as the 
-          //command propagates through the system. A realistic delay might be on the order of 100 milliseconds.
-          //This is a problem called "latency"
-          
-          // Incorporating latency
-          double latency = 0.1;
-          double dt = 0.1;
-          
+          // Transform points to car co-ordinate system to make it easy
           for(int i=0 ; i < ptsx.size(); i++){
             double shift_x = ptsx[i]-px;
             double shift_y = ptsy[i]-py;
@@ -120,12 +112,24 @@ int main() {
             ptsx[i] = shift_x * cos(0-psi) - shift_y * sin(0-psi);
             ptsy[i] = shift_x * sin(0-psi) + shift_y * cos(0-psi);
           }
+
+
+          //n a real car, an actuation command won't execute instantly - there will be a delay as the 
+          //command propagates through the system. A realistic delay might be on the order of 100 milliseconds.
+          //This is a problem called "latency"
           
-          v = v + throttle_value*dt;
+          // Incorporating latency
+          px = 0;
+          py = 0;
+          psi = 0;
+          double latency = 0.1;
+          double dt = 0.1;
+          
+          v = v + throttle_value*latency;
           psi = psi + v*dt/Lf*latency;
           px = px + v*cos(psi)*latency;
-          py = py + v*sin(psi)*latency;                    
-
+          py = py + v*sin(psi)*latency;  
+          
           double* ptrx = &ptsx[0];
           Eigen::Map<Eigen::VectorXd> ptsx_transform(ptrx, 6);
 
@@ -136,12 +140,12 @@ int main() {
 
           // calculate cte and epsi
           double cte = polyeval(coeffs, 0);
-          //double epsi = psi - atan(coeffs[1] + 2*px*coeffs[2] + 3*coeffs[3]*pow(px,2));
+          double epsi = psi - atan(coeffs[1] + 2*px*coeffs[2] + 3*coeffs[3]*pow(px,2));
           // but since psi = 0, px = 0 we get,
-          double epsi = -atan(coeffs[1]);
+          //double epsi = -atan(coeffs[1]);
           
           Eigen::VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
+          state << px, 0, psi, v, cte, epsi;
 
           auto vars = mpc.Solve(state, coeffs);
           
@@ -166,8 +170,9 @@ int main() {
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
-          for(int i=2; i<vars.size(); i++){
-            if(vars[i]!=0){
+          for(int i=2; i<vars.size(); i++){  
+          if(vars[i] !=0){
+             
               if(i%2 ==0){
                 mpc_x_vals.push_back(vars[i]);
               }
@@ -175,6 +180,7 @@ int main() {
                 mpc_y_vals.push_back(vars[i]);
               }
             }
+
           }          
 
           json msgJson;
