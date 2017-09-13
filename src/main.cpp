@@ -125,11 +125,11 @@ int main() {
           double latency = 0.1;
           double dt = 0.1;
           
-          v = v + throttle_value*latency;
-          psi = psi + v*dt/Lf*latency;
           px = px + v*cos(psi)*latency;
           py = py + v*sin(psi)*latency;  
-          
+          psi = psi + v*dt/Lf*latency;
+          v = v + throttle_value*latency;
+
           double* ptrx = &ptsx[0];
           Eigen::Map<Eigen::VectorXd> ptsx_transform(ptrx, 6);
 
@@ -143,15 +143,15 @@ int main() {
           double epsi = psi - atan(coeffs[1] + 2*px*coeffs[2] + 3*coeffs[3]*pow(px,2));
           // but since psi = 0, px = 0 we get,
           //double epsi = -atan(coeffs[1]);
-          
+
           Eigen::VectorXd state(6);
-          state << px, 0, psi, v, cte, epsi;
+          state << px, py, psi, v, cte, epsi;
 
           auto vars = mpc.Solve(state, coeffs);
           
           cout << endl;
           for(int i=0; i<vars.size(); i++){
-            cout << "vars " << vars[i] << endl;
+            //cout << "vars " << vars[i] << endl;
           }
 
           //Display the waypoints/reference line
