@@ -8,7 +8,7 @@ using namespace std;
 
 // TODO: Set the timestep length and duration
 size_t N = 10;
-double dt = 0.15;
+double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -57,8 +57,8 @@ class FG_eval {
 
     // The part of the cost based on the reference state.
     for (int t = 0; t < N; t++) {
-      fg[0] += 100*CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += 3000*CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += 200*CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += 5000*CppAD::pow(vars[epsi_start + t], 2);
       fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
@@ -171,8 +171,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   vars[x_start] = state[0];
   vars[y_start] = state[1];
-  vars[v_start] = state[2];
-  vars[psi_start] = state[3];
+  vars[psi_start] = state[2];
+  vars[v_start] = state[3];
   vars[cte_start] = state[4];
   vars[epsi_start] = state[5];
 
