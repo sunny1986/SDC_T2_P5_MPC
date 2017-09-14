@@ -140,10 +140,10 @@ int main() {
           double epsi = -atan(coeffs[1]);
 
           cte = cte + v *sin(epsi)*latency;
-          epsi = epsi + (v/Lf)*dt*latency;
+          epsi = epsi + (v/Lf)*steer_value*latency;
           
           v = v + throttle_value*latency;          
-          psi = psi + (v/Lf)*dt*latency;
+          psi = psi + (v/Lf)*steer_value*latency;
           px = px + v*cos(psi)*latency;
           py = py + v*sin(psi)*latency;            
 
@@ -152,11 +152,6 @@ int main() {
 
           auto vars = mpc.Solve(state, coeffs);
           
-          cout << endl;
-          for(int i=0; i<vars.size(); i++){
-            //cout << "vars " << vars[i] << endl;
-          }
-
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
@@ -173,17 +168,13 @@ int main() {
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
-          for(int i=2; i<vars.size(); i++){  
-          if(vars[i] !=0){
-             
+          for(int i=2; i<vars.size(); i++){                         
               if(i%2 ==0){
                 mpc_x_vals.push_back(vars[i]);
               }
               else{
                 mpc_y_vals.push_back(vars[i]);
               }
-            }
-
           }          
 
           json msgJson;
