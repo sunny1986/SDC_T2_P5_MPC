@@ -11,7 +11,14 @@
 
  In our case, we are getting the way points and the state of the vehicle from the simulator (lines 88 to 94). Using these waypoints and the current state, we have to calculate the control inputs. This is where the MPC controller is used.
 
- First we convert the current steering angle received from the simulator into radians and transform the waypoints into car co-ordinate system to work out all calculations with a single reference frame. A subsequet 2D rotation to align the x-axis with the heading direction. Therby the waypoints are obtained in the frame of the vehicle.
+ First we convert the current steering angle received from the simulator into radians and transform the waypoints into car co-ordinate system to work out all calculations with a single reference frame. A subsequet 2D rotation to align the x-axis with the heading direction. Therby the waypoints are obtained in the frame of the vehicle. FOllowing are the model equations
+
+  x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+  y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+  psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+  v_[t+1] = v[t] + a[t] * dt
+  cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+  epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
 
  ## CHOOSING N & dt:
 
@@ -32,7 +39,7 @@
  In this method, the cost function is minimized at each step. At every time step the entire optimization problem is solved and cost is calculated.
 
  ## RESULTS
- 
+
  With the final tuning, the car was able to drive upto a speed limit of 60mph. Although further tuning can make it go at higher speeds. I tried at 70 mph with current parameters and at sharp turns sometimes the car would go out of track. Future work can include doing this.
 
 ---
