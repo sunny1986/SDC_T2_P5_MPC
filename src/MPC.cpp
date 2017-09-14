@@ -25,7 +25,7 @@ const double Lf = 2.67;
 // these are what values that we want the MPC to reach
 double ref_cte = 0; // this means the car is right on the line
 double ref_epsi = 0; // this means the car is aligned to the line
-double ref_v = 40;
+double ref_v = 60;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -53,25 +53,25 @@ class FG_eval {
     // Any additions to the cost should be added to `fg[0]`.
     fg[0] = 0;
 
-    // Cost function
+    // Cost function (old coeffs : 200,3000,100,50,1000,50)
 
     // The part of the cost based on the reference state.
     for (int t = 0; t < N; t++) {
-      fg[0] += 200*CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += 5000*CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += 500*CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += 3000*CppAD::pow(vars[epsi_start + t], 2);
       fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
     // Minimize the use of actuators.
     for (int t = 0; t < N - 1; t++) {
       fg[0] += 100*CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += 5*CppAD::pow(vars[a_start + t], 2);
+      fg[0] += 10*CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++) {
-      fg[0] += 1000*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += 1*CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] += 100*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += 10*CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
 
     // Initialize constraints
@@ -88,7 +88,7 @@ class FG_eval {
 	fg[1 + epsi_start] = vars[epsi_start];
 
 	// Rest of the constraints
-	for (int t = 1; t < N-1; t++) {
+	for (int t = 1; t < N; t++) {
 	  // The state at time t+1 .
 	  AD<double> x1 = vars[x_start + t];
 	  AD<double> y1 = vars[y_start + t];
