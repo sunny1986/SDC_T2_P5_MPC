@@ -29,6 +29,3 @@
  MPC reframes the problem of following a trajectory as an optimization problem. The solution to the optimization problem is the optimal trajectory that the car follows. MPC involves simulating different actuator inputs, predicting the resulting trajectory and selecting that trajectory with the minimum cost. I chose the cost coeffs such that the the car is able to go around the track as smooth as possible. The cost function is implemented in the FG_eval class. I started with keeping rest of the coeffs in the cost calculation as 1 and focused only on the cte and epsi coeffs to let the car at least drive the entire track first, though not smoothly. Then I played around with the effects of the coeffs of the actuators and the coeffs of thier rates of change to get the car running as smooth as possible.
 
  In this method, the cost function is minimized at each step. At every time step the entire optimization problem is solved and cost is calculated.
-
-
- 200,3000,100,50,1000,50
