@@ -12,17 +12,17 @@
  In our case, we are getting the way points and the state of the vehicle from the simulator (lines 88 to 94). Using these waypoints and the current state, we have to calculate the control inputs. This is where the MPC controller is used.
 
  First we convert the current steering angle received from the simulator into radians and transform the waypoints into car co-ordinate system to work out all calculations with a single reference frame. A subsequet 2D rotation to align the x-axis with the heading direction. Therby the waypoints are obtained in the frame of the vehicle. FOllowing are the model equations
-
-  x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
-  y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
-  psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
-  v_[t+1] = v[t] + a[t] * dt
-  cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
-  epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
+      
+      // x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+      // y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+      // psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+      // v_[t+1] = v[t] + a[t] * dt
+      // cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+      // epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
 
  ## CHOOSING N & dt:
 
- We choose the time interval over which we plan to predict the vehicle trajectory. This time is T = N*dt. The shorter the prediction time T, the faster the calculation of the predicted trajectory but it might lead to instability since the correction is happening too quickly. The longer the T is, the longer it will take to calcuate but also it may be less accuracte since there might be other parameters that did not get covered in the calculations for that long time interval. Hence, T having a value somewhere in between where the controller is also stable but smooth is chosen.  Admittedly, I used the values of N and dt to be 10 and 0.1 sec from the suggestions in the Q&A video and the forum posts. This turns out to predicting the trajectory of the car over 10*0.1 = 1 sec into the future.  
+ We choose the time interval over which we plan to predict the vehicle trajectory. This time is T = N*dt. The shorter the prediction time T, the faster the calculation of the predicted trajectory but it might lead to instability since the correction is happening too quickly. The longer the T is, the longer it will take to calcuate but also it may be less accuracte since there might be other parameters that did not get covered in the calculations for that long time interval. Hence, T having a value somewhere in between where the controller is also stable but smooth is chosen.  Admittedly, I used the values of N and dt to be 10 and 0.1 sec from the suggestions in the Q&A video and the forum posts. This turns out to predicting the trajectory of the car over 10/*0.1 = 1 sec into the future.  
 
  Next we use the waypoints and use polyfit to fit a 3rd order polynomial to those waypoints and get the coeffs of the polynomial.  These coeffs are used in calculating (a) the cross track error (cte): the error between the desired trajectory and the actual trajectory of the vehicle, (b) the orientation error (epsi): orientation of the vehicle wrt the direction of desired trajectory. 
 
