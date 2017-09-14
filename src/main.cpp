@@ -142,10 +142,11 @@ int main() {
           cte = cte + v *sin(epsi)*latency;
           epsi = epsi + (v/Lf)*steer_value*latency;
           
-          v = v + throttle_value*latency;          
-          psi = psi + (v/Lf)*steer_value*latency;
           px = px + v*cos(psi)*latency;
           py = py + v*sin(psi)*latency;            
+          
+          v = v + throttle_value*latency;          
+          psi = psi + (v/Lf)*steer_value*latency;
 
           Eigen::VectorXd state(6);
           state << px, py, psi, v, cte, epsi;
