@@ -2,14 +2,33 @@
 
  In this project we use Model Predictive Control to drive a car around a track in a simulator. In this approach we use Kinematic model of the car. Kinematic models are simplifications of dynamic models that ignore tire forces, gravity, and mass. This simplification reduces the accuracy of the models, but it also makes them more tractable. At low and moderate speeds, kinematic models often approximate the actual vehicle dynamics.
 
+ THE MODEL:
+
  A vehicle in map co-ordinates has two states which represent the x & y locations in this co-ordinate system. Also the orienation of the vehicle wrt to the x axis in this system is a part of the state of the vehicle given by psi. Since the vehicle is moving and has finite velocity in a particular direction, we use the velocity v as one of that states too. So till now our state is described by [x, y, psi, v]. 
 
  One part of the project is to derive a model that captures how the state evolves over time and how the inputs interact with the states and influence the future state of the vehicle. Inputs influence the state and in our case we have two actuators, the steering wheel angle and the accelerator as inputs. In case of accelerator +ve value means acceleration and -ve values means the vehicle is breaking. Hence we use 2 inputs, delta for steering angle and a for acceleration.
 
  In our case, we are getting the way points and the state of the vehicle from the simulator (lines 88 to 94). Using these waypoints and the current state, we have to calculate the control inputs. This is where the MPC controller is used.
 
- First we convert the current steering angle received from the simulator into radians and transform the waypoints into car co-ordinate system to work out all calculations with a single reference frame. In a real car, an actuation command won't execute instantly - there will be a delay as the command propagates through the system. A realistic delay might be on the order of 100 milliseconds. This is a problem called LATENCY. Latency happens due to the actuator dynamics. For example, there is a delay between when the steering angle was commanded to go to a certain value and when it actually reaches that value. One advantage of the MPC controller is that we can model this latency into the vehicle model. Lines 122-128 takes care of incorporating latency into the model.
+ First we convert the current steering angle received from the simulator into radians and transform the waypoints into car co-ordinate system to work out all calculations with a single reference frame. A subsequet 2D rotation to align the x-axis with the heading direction. Therby the waypoints are obtained in the frame of the vehicle.
 
- Next we use the waypoints and use polyfit to fit a 3rd order polynomial to those waypoints and get the coeffs of the polynomial. These coeffs are used in calculating (a) the cross track error (cte): the error between the desired trajectory and the actual trajectory of the vehicle, (b) the orientation error (epsi): orientation of the vehicle wrt the direction of desired trajectory. Next we create the state using these calculations and feed it to the solver that returns the control inputs for the vehicle wrt the state and the coeffs we pass to the solver.
+ CHOOSING N & dt:
+
+ We choose the time interval over which we plan to predict the vehicle trajectory. This time is T = N*dt. The shorter the prediction time T, the faster the calculation of the predicted trajectory but it might lead to instability since the correction is happening too quickly. The longer the T is, the longer it will take to calcuate but also it may be less accuracte since there might be other parameters that did not get covered in the calculations for that long time interval. Hence, T having a value somewhere in between where the controller is also stable but smooth is chosen.  Admittedly, I used the values of N and dt to be 10 and 0.1 sec from the suggestions in the Q&A video and the forum posts. This turns out to predicting the trajectory of the car over 10*0.1 = 1 sec into the future.	
+
+ Next we use the waypoints and use polyfit to fit a 3rd order polynomial to those waypoints and get the coeffs of the polynomial.  These coeffs are used in calculating (a) the cross track error (cte): the error between the desired trajectory and the actual trajectory of the vehicle, (b) the orientation error (epsi): orientation of the vehicle wrt the direction of desired trajectory. 
+
+ LATENCY:
+
+ In a real car, an actuation command won't execute instantly - there will be a delay as the command propagates through the system. A realistic delay might be on the order of 100 milliseconds. This is a problem called LATENCY. The car drifts at the current speed, heading, and rate of turn for the entire interval forward. Latency happens due to the actuator dynamics. For example, there is a delay between when the steering angle was commanded to go to a certain value and when it actually reaches that value. One advantage of the MPC controller is that we can model this latency into the vehicle model. Lines 142-148 takes care of incorporating latency into the model.
+
+ Next we create the state using these calculations and feed it to the solver that returns the control inputs for the vehicle wrt the state and the coeffs we pass to the solver.
+
+ MODEL PREDICTIVE CONTROL:
+
+ MPC reframes the problem of following a trajectory as an optimization problem. The solution to the optimization problem is the optimal trajectory that the car follows. MPC involves simulating different actuator inputs, predicting the resulting trajectory and selecting that trajectory with the minimum cost. I chose the cost coeffs such that the the car is able to go around the track as smooth as possible. The cost function is implemented in the FG_eval class. I started with keeping rest of the coeffs in the cost calculation as 1 and focused only on the cte and epsi coeffs to let the car at least drive the entire track first, though not smoothly. Then I played around with the effects of the coeffs of the actuators and the coeffs of thier rates of change to get the car running as smooth as possible.
+
+ In this method, the cost function is minimized at each step. At every time step the entire optimization problem is solved and cost is calculated.
+
 
  200,3000,100,50,1000,50
